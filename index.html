@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>💕 Te Amo — San Valentín</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Inter:wght@300;400&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- Three.js canvas container -->
+    <div id="canvas-container"></div>
+
+    <!-- Loading screen -->
+    <div id="loading">
+      <div class="loading-content">
+        <div class="heart-loader">💕</div>
+        <p>Preparando las estrellas...</p>
+      </div>
+    </div>
+
+    <!-- UI overlay -->
+    <div id="ui" style="display: none">
+      <h1 id="title">✨ Las estrellas son tuyas ✨</h1>
+
+      <!-- Detected gesture big display -->
+      <div id="gesture-display"></div>
+
+      <!-- Gesture guide -->
+      <div id="gesture-guide">
+        <span>☝️ Planeta</span>
+        <span>✌️ Carolina</span>
+        <span>🤘 Te Amo</span>
+        <span>🤟 Corazón</span>
+        <span>🖐️ Cosmos</span>
+        <span>✊ Concentrar</span>
+      </div>
+
+      <div id="controls">
+        <button id="toggle-btn">🌌 Cosmos</button>
+        <button id="camera-btn">📷 Activar Cámara</button>
+      </div>
+
+      <div id="camera-status"></div>
+    </div>
+
+    <!-- Camera preview -->
+    <canvas
+      id="camera-preview"
+      width="240"
+      height="180"
+      style="display: none"
+    ></canvas>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
