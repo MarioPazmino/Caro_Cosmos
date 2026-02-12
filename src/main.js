@@ -10,7 +10,7 @@
  * Gesture → Formation map:
  *   ☝️  INDEX_UP  → Planeta (esfera con anillo)
  *   ✌️  PEACE     → Texto "Carolina"
- *   🤘 ROCK      → Texto "Te Amo"
+ *   🤘 ROCK      → Texto "Te Quiero"
  *   🤟 ILY       → Corazón ❤️
  *   🖐️  OPEN      → Cosmos / esfera abierta
  *   ✊  FIST      → Concentrar (compactar)
@@ -40,7 +40,7 @@ const toggleBtn     = document.getElementById('toggle-btn');
 const cameraBtn     = document.getElementById('camera-btn');
 const statusEl      = document.getElementById('camera-status');
 const cameraPreview = document.getElementById('camera-preview');
-const gestureEl     = document.getElementById('gesture-display');
+const gestureEl     = null; // removed from UI
 
 /* ────────────────────────────────────────────────── */
 /*  Three.js scene                                    */
@@ -98,7 +98,7 @@ scene.add(particles.mesh);
 const F = {
   PLANET:   'PLANET',
   CAROLINA: 'CAROLINA',
-  TEAMO:    'TEAMO',
+  TEQUIERO: 'TEQUIERO',
   HEART:    'HEART',
   COSMOS:   'COSMOS',
   COMPACT:  'COMPACT',
@@ -108,7 +108,7 @@ const F = {
 const GESTURE_TO_FORMATION = {
   [GESTURES.INDEX_UP]: F.PLANET,
   [GESTURES.PEACE]:    F.CAROLINA,
-  [GESTURES.ROCK]:     F.TEAMO,
+  [GESTURES.ROCK]:     F.TEQUIERO,
   [GESTURES.ILY]:      F.HEART,
   [GESTURES.OPEN]:     F.COSMOS,
   [GESTURES.FIST]:     F.COMPACT,
@@ -118,7 +118,7 @@ const GESTURE_TO_FORMATION = {
 const FORMATION_INFO = {
   [F.PLANET]:   { emoji: '🪐', label: 'Planeta',   title: '✨ Un planeta para ti ✨' },
   [F.CAROLINA]: { emoji: '💕', label: 'Carolina',  title: '💖 Carolina 💖' },
-  [F.TEAMO]:    { emoji: '🤘', label: 'Te Amo',    title: '🔥 Te Amo 🔥' },
+  [F.TEQUIERO]: { emoji: '🤘', label: 'Te Quiero', title: '💜 Te Quiero 💜' },
   [F.HEART]:    { emoji: '❤️', label: 'Corazón',    title: '❤️ Te Quiero ❤️' },
   [F.COSMOS]:   { emoji: '🌌', label: 'Cosmos',    title: '✨ Las estrellas son tuyas ✨' },
   [F.COMPACT]:  { emoji: '✊', label: 'Concentrar', title: '💫 Todo para ti 💫' },
@@ -133,7 +133,7 @@ async function precomputeFormations() {
   formationData[F.COSMOS]   = getSpherePositions(particles.count, 12);
   formationData[F.PLANET]   = getPlanetPositions(particles.count);
   formationData[F.CAROLINA] = getTextPositions('Carolina', particles.count);
-  formationData[F.TEAMO]    = getTextPositions('Te Amo', particles.count);
+  formationData[F.TEQUIERO] = getTextPositions('Te Quiero', particles.count);
   formationData[F.HEART]    = getHeartPositions(particles.count, 0.7);
   formationData[F.COMPACT]  = getCompactPositions(particles.count, 1.2);
 
@@ -153,7 +153,6 @@ function setFormation(id) {
   const info = FORMATION_INFO[id];
   if (info) {
     titleEl.textContent = info.title;
-    toggleBtn.textContent = `${info.emoji} ${info.label}`;
   }
 }
 
@@ -259,9 +258,14 @@ function animate() {
     particles.attractor = null;
   }
 
-  /* Slow auto-rotation */
-  particles.mesh.rotation.y = Math.sin(elapsed * 0.1) * 0.3;
-  particles.mesh.rotation.x = Math.sin(elapsed * 0.07) * 0.1;
+  /* Rotation — faster spin for planet, gentle sway for others */
+  if (currentFormation === F.PLANET) {
+    particles.mesh.rotation.y += 0.006;
+    particles.mesh.rotation.x = Math.sin(elapsed * 0.15) * 0.25;
+  } else {
+    particles.mesh.rotation.y = Math.sin(elapsed * 0.1) * 0.3;
+    particles.mesh.rotation.x = Math.sin(elapsed * 0.07) * 0.1;
+  }
 
   particles.update(elapsed);
   renderer.render(scene, camera3D);

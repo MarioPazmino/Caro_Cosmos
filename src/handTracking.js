@@ -7,7 +7,7 @@
  * Gestures detected:
  *   ☝️  INDEX_UP   — solo índice arriba        → Planeta
  *   ✌️  PEACE      — índice + medio             → "Carolina"
- *   🤘 ROCK       — índice + meñique            → "Te Amo"
+ *   🤘 ROCK       — índice + meñique            → "Te Quiero"
  *   🤟 ILY        — pulgar + índice + meñique   → Corazón
  *   🖐️  OPEN       — todos los dedos abiertos   → Cosmos / explosión
  *   ✊  FIST       — puño cerrado                → Comprimir
@@ -30,7 +30,7 @@ export const GESTURES = {
 export const GESTURE_LABELS = {
   [GESTURES.INDEX_UP]: '☝️  Índice — Planeta',
   [GESTURES.PEACE]:    '✌️  Paz — Carolina',
-  [GESTURES.ROCK]:     '🤘 Rock — Te Amo',
+  [GESTURES.ROCK]:     '🤘 Rock — Te Quiero',
   [GESTURES.ILY]:      '🤟 Te Quiero — Corazón',
   [GESTURES.OPEN]:     '🖐️  Abierta — Cosmos',
   [GESTURES.FIST]:     '✊ Puño — Concentrar',
@@ -55,7 +55,7 @@ export class HandTracker {
     /** Debounce: require N consecutive identical detections to switch */
     this._gestureBuffer = null;
     this._gestureCount = 0;
-    this._DEBOUNCE = 3;
+    this._DEBOUNCE = 5;
   }
 
   /* ──────────────────────────────────────── */
@@ -135,12 +135,33 @@ export class HandTracker {
    */
   _isFingerExtended(landmarks, finger) {
     if (finger === 'thumb') {
-      // Thumb: tip further from palm centre than IP joint
-      const tip = landmarks[4];
-      const ip  = landmarks[3];
-      const mcp = landmarks[2];
-      // Use x-distance — works for both left/right hands
-      return Math.abs(tip.x - mcp.x) > Math.abs(ip.x - mcp.x) * 1.2;
+      // Thumb: use multiple checks for robust detection
+      const tip = landmarks[4];  // thumb tip
+      const ip  = landmarks[3];  // thumb IP
+      const mcp = landmarks[2];  // thumb MCP
+      const wrist = landmarks[0];
+      const indexMcp = landmarks[5]; // base of index finger
+
+      // Check 1: tip is significantly further out than IP joint (x-axis)
+      const tipDist = Math.abs(tip.x - mcp.x);
+      const ipDist  = Math.abs(ip.x - mcp.x);
+      const xExtended = tipDist > ipDist * 1.5;
+
+      // Check 2: thumb tip is far from index finger base (distance)
+      // When thumb is tucked in ROCK gesture, it's close to/under the fingers
+      const dx = tip.x - indexMcp.x;
+      const dy = tip.y - indexMcp.y;
+      const distToIndex = Math.sqrt(dx * dx + dy * dy);
+
+      // Palm size as reference (wrist to middle MCP)
+      const palmDx = wrist.x - landmarks[9].x;
+      const palmDy = wrist.y - landmarks[9].y;
+      const palmSize = Math.sqrt(palmDx * palmDx + palmDy * palmDy);
+
+      // Thumb must be far enough from index base (at least 40% of palm size)
+      const farFromIndex = distToIndex > palmSize * 0.4;
+
+      return xExtended && farFromIndex;
     }
 
     const map = { index: [8, 6], middle: [12, 10], ring: [16, 14], pinky: [20, 18] };
@@ -158,11 +179,30 @@ export class HandTracker {
 
     const extendedCount = [thumb, index, middle, ring, pinky].filter(Boolean).length;
 
-    // 🤟 ILY — thumb + index + pinky (middle & ring curled)
-    if (thumb && index && !middle && !ring && pinky) return GESTURES.ILY;
+    // When index + pinky are up and middle + ring are down,
+    // decide between ILY (🤟) and ROCK (🤘) based on thumb.
+    // Use extra distance check to avoid confusion.
+    if (index && !middle && !ring && pinky) {
+      if (thumb) {
+        // Extra verification: thumb tip must be clearly separated
+        const thumbTip = landmarks[4];
+        const indexMcp = landmarks[5];
+        const dx = thumbTip.x - indexMcp.x;
+        const dy = thumbTip.y - indexMcp.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const wrist = landmarks[0];
+        const palmDx = wrist.x - landmarks[9].x;
+        const palmDy = wrist.y - landmarks[9].y;
+        const palmSize = Math.sqrt(palmDx * palmDx + palmDy * palmDy);
 
-    // 🤘 Rock — index + pinky (no thumb, no middle, no ring)
-    if (!thumb && index && !middle && !ring && pinky) return GESTURES.ROCK;
+        // Only ILY if thumb is clearly extended outward
+        if (dist > palmSize * 0.5) {
+          return GESTURES.ILY;
+        }
+      }
+      // Default to ROCK when thumb is tucked or ambiguous
+      return GESTURES.ROCK;
+    }
 
     // ✌️ Peace — index + middle (ring & pinky curled)
     if (index && middle && !ring && !pinky) return GESTURES.PEACE;

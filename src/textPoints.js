@@ -76,7 +76,7 @@ export function getSpherePositions(count = 4000, radius = 12) {
 /**
  * Heart shape (2-D parametric → lifted to 3D with slight depth noise).
  */
-export function getHeartPositions(count = 4000, scale = 0.7) {
+export function getHeartPositions(count = 4000, scale = 1.2) {
   const arr = new Float32Array(count * 3);
   for (let i = 0; i < count; i++) {
     const t = Math.random() * Math.PI * 2;
@@ -121,18 +121,18 @@ export function getPlanetPositions(count = 4000) {
 
   for (let i = 0; i < count; i++) {
     if (i < coreCount) {
-      // Inner sphere (planet body)
+      // Inner sphere (planet body) — bigger
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(2 * Math.random() - 1);
-      const r = 2.0 * Math.cbrt(Math.random());
+      const r = 3.5 * Math.cbrt(Math.random());
       arr[i * 3]     = r * Math.sin(phi) * Math.cos(theta);
       arr[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
       arr[i * 3 + 2] = r * Math.cos(phi);
     } else {
-      // Ring (torus)
+      // Ring (torus) — bigger
       const angle = Math.random() * Math.PI * 2;
-      const ringR = 4.0 + (Math.random() - 0.5) * 1.8;
-      const y = (Math.random() - 0.5) * 0.3;
+      const ringR = 6.5 + (Math.random() - 0.5) * 2.2;
+      const y = (Math.random() - 0.5) * 0.35;
       arr[i * 3]     = Math.cos(angle) * ringR;
       arr[i * 3 + 1] = y;
       arr[i * 3 + 2] = Math.sin(angle) * ringR;
